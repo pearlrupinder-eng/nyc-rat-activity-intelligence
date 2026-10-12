@@ -1,0 +1,25 @@
+{
+  "run_utc": "2026-10-12T20:04:34.599335+00:00",
+  "window": [
+    "2026-09-21",
+    "2026-10-12"
+  ],
+  "status": "success",
+  "sources": {
+    "complaints": {
+      "downloaded": 1205,
+      "total": 1205,
+      "net_new": 1205
+    },
+    "inspections": {
+      "downloaded": 9641,
+      "total": 9641,
+      "net_new": 9641
+    }
+  },
+  "mart": {
+    "complaints": 1205,
+    "inspections": 9641,
+    "daily_grains": 1876
+  }
+}
