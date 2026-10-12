@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NYC Rat Activity Intelligence</title><style>
+body{margin:0;background:#0d1729;color:#e9f0ff;font:15px system-ui,sans-serif}
+main{max-width:1150px;margin:auto;padding:36px 22px}h1{font-size:32px;margin:8px 0}
+p,small{color:#aabbd1}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:25px 0}
+.card,.panel{background:#182842;border:1px solid #324766;border-radius:15px;padding:20px}
+.card b{display:block;font-size:30px;margin:12px 0}.card span{font-size:12px;color:#b0c5e5}
+.panels{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
+.empty{padding:60px 12px;text-align:center;border:1px dashed #506381;color:#acc1e0}
+table{width:100%;border-collapse:collapse}td,th{text-align:left;padding:9px;border-bottom:1px solid #354966}
+svg{width:100%;height:180px}input{margin:10px;padding:8px}
+@media(max-width:750px){.grid{grid-template-columns:repeat(2,1fr)}.panels{grid-template-columns:1fr}}
+</style></head><body><main>
+<small>NYC OPEN DATA / POWER BI PROJECT</small><h1>NYC Rat Activity Intelligence</h1>
+<p>Resident 311 reports and Department of Health inspection outcomes. No simulated NYC KPI values.</p>
+<label>Choose an exported <code>data/daily_metrics.csv</code>: <input type="file" accept=".csv" id="file"></label>
+<p id="status">Awaiting a successful live data export.</p>
+<div class="grid">
+<div class="card"><span>311 RAT COMPLAINTS</span><b id="c">—</b></div>
+<div class="card"><span>INSPECTION RECORDS</span><b id="i">—</b></div>
+<div class="card"><span>RAT ACTIVITY RATE</span><b id="r">—</b></div>
+<div class="card"><span>LATEST RECORD DATE</span><b id="d">—</b></div>
+</div><div class="panels"><section class="panel"><h3>Weekly complaints</h3><div id="trend" class="empty">Load a real CSV to plot weekly counts.</div></section>
+<section class="panel"><h3>Top complaint ZIP codes</h3><div id="zips" class="empty">Awaiting real records.</div></section></div>
+<p><small>311 reports are not rat population counts. Inspection volume reflects where inspectors visited, not citywide prevalence.</small></p>
+</main><script>
+const el=id=>document.getElementById(id);
+function parseCSV(text){const lines=text.trim().split(/\r?\n/);const cols=lines.shift().split(",");return lines.filter(Boolean).map(line=>{const vals=line.split(",");return Object.fromEntries(cols.map((k,i)=>[k,vals[i]]))})}
+el("file").addEventListener("change",async e=>{
+ const f=e.target.files[0];if(!f)return;
+ const rows=parseCSV(await f.text()),sum=k=>rows.reduce((s,r)=>s+(Number(r[k])||0),0);
+ const C=sum("complaints"),I=sum("inspections"),A=sum("rat_activity_inspections");
+ el("c").textContent=C.toLocaleString();el("i").textContent=I.toLocaleString();
+ el("r").textContent=I?(100*A/I).toFixed(1)+"%":"N/A";
+ el("d").textContent=rows.reduce((a,r)=>r.date>a?r.date:a,"")||"—";
+ el("status").textContent="Loaded "+rows.length.toLocaleString()+" data rows from "+f.name;
+ const week=new Map(),zips=new Map();
+ for(const r of rows){const d=new Date(r.date+"T00:00:00Z");if(!isNaN(d)){
+ d.setUTCDate(d.getUTCDate()-(d.getUTCDay()+6)%7);
+ const k=d.toISOString().slice(0,10);week.set(k,(week.get(k)||0)+(Number(r.complaints)||0))}
+ if(/^\d{5}$/.test(r.zip_code||""))zips.set(r.zip_code,(zips.get(r.zip_code)||0)+(Number(r.complaints)||0))}
+ const w=[...week].sort((a,b)=>a[0].localeCompare(b[0])).slice(-26),max=Math.max(1,...w.map(x=>x[1]));
+ el("trend").className="";
+ el("trend").innerHTML='<svg viewBox="0 0 640 180" preserveAspectRatio="none" role="img" aria-label="Weekly 311 complaint trend"><polyline fill="none" stroke="#80cfff" stroke-width="3" points="'+w.map((p,i)=>(25+i*590/Math.max(w.length-1,1))+","+(155-135*p[1]/max)).join(" ")+'"/></svg><small>Last '+w.length+' weeks with recorded complaints</small>';
+ el("zips").className="";
+ el("zips").innerHTML='<table><tr><th>ZIP</th><th>Complaints</th></tr>'+[...zips].sort((a,b)=>b[1]-a[1]).slice(0,10).map(([z,n])=>'<tr><td>'+z+'</td><td>'+n.toLocaleString()+'</td></tr>').join("")+'</table>';
+});
+</script></body></html>
