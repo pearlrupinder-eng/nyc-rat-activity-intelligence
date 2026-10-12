@@ -1,0 +1,8 @@
+-- Import data/daily_metrics.csv as DailyMetrics. Use a separate contiguous Calendar table.
+Total Complaints = SUM(DailyMetrics[complaints])
+Total Inspections = SUM(DailyMetrics[inspections])
+Rat Activity Inspections = SUM(DailyMetrics[rat_activity_inspections])
+Rat Activity Rate = DIVIDE([Rat Activity Inspections], [Total Inspections])
+Passed Inspections = SUM(DailyMetrics[passed_inspections])
+Previous Week Complaints = CALCULATE([Total Complaints], DATEADD('Calendar'[Date], -7, DAY))
+Weekly Change % = DIVIDE([Total Complaints] - [Previous Week Complaints], [Previous Week Complaints])
