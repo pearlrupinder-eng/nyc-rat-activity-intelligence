@@ -1,5 +1,5 @@
 {
-  "run_utc": "2026-10-12T20:04:34.599335+00:00",
+  "run_utc": "2026-10-12T20:09:43.123835+00:00",
   "window": [
     "2026-09-21",
     "2026-10-12"
@@ -9,12 +9,12 @@
     "complaints": {
       "downloaded": 1205,
       "total": 1205,
-      "net_new": 1205
+      "net_new": 0
     },
     "inspections": {
       "downloaded": 9641,
       "total": 9641,
-      "net_new": 9641
+      "net_new": 0
     }
   },
   "mart": {
