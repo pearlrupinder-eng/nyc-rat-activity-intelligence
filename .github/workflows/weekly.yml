@@ -1,19 +1,69 @@
 name: NYC Rodent Weekly Refresh
 on:
   workflow_dispatch:
+    inputs:
+      mode:
+        description: "weekly (21-day overlap) or backfill (custom date range)"
+        required: true
+        type: choice
+        default: weekly
+        options:
+          - weekly
+          - backfill
+      start_date:
+        description: "Backfill start YYYY-MM-DD (inclusive)"
+        required: false
+        type: string
+      end_date:
+        description: "Backfill end YYYY-MM-DD (exclusive)"
+        required: false
+        type: string
   schedule:
     - cron: '30 13 * * 1'
 permissions:
   contents: write
+concurrency:
+  group: nyc-rat-data-refresh
+  cancel-in-progress: false
 jobs:
   refresh:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v5
+        with:
+          persist-credentials: true
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - name: Fetch and model public data
+      - name: Test data transformations
+        run: python -m unittest discover -s tests -p "test_*.py"
+      - name: Validate backfill input
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'backfill' }}
+        env:
+          START_DATE: ${{ inputs.start_date }}
+          END_DATE: ${{ inputs.end_date }}
+        run: |
+          python - <<'PY'
+          import os
+          from datetime import date
+          start=date.fromisoformat(os.environ["START_DATE"])
+          end=date.fromisoformat(os.environ["END_DATE"])
+          if not start < end:
+              raise SystemExit("Backfill start_date must precede end_date")
+          if (end-start).days > 45:
+              raise SystemExit("Use backfill windows of 45 days or less to avoid oversized API and Git commits")
+          print("Validated backfill range:",start,"to",end,"(end exclusive)")
+          PY
+      - name: Collect historical data
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'backfill' }}
+        env:
+          SOCRATA_APP_TOKEN: ${{ secrets.SOCRATA_APP_TOKEN }}
+          START_DATE: ${{ inputs.start_date }}
+          END_DATE: ${{ inputs.end_date }}
+        run: python pipeline.py --start "$START_DATE" --end "$END_DATE"
+      - name: Collect weekly updates
+        if: ${{ github.event_name == 'schedule' || inputs.mode != 'backfill' }}
         env:
           SOCRATA_APP_TOKEN: ${{ secrets.SOCRATA_APP_TOKEN }}
         run: python pipeline.py --lookback 21
