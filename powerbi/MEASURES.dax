@@ -1,8 +1,21 @@
--- Import data/daily_metrics.csv as DailyMetrics. Use a separate contiguous Calendar table.
+-- NYC Rat Intelligence | Power BI measures
+-- DailyMetrics imported from data/daily_metrics.csv.
+-- Create a marked date table called Calendar, related Calendar[Date] -> DailyMetrics[date].
+-- Use SUM-based measures only on the appropriate report filters.
 Total Complaints = SUM(DailyMetrics[complaints])
 Total Inspections = SUM(DailyMetrics[inspections])
 Rat Activity Inspections = SUM(DailyMetrics[rat_activity_inspections])
-Rat Activity Rate = DIVIDE([Rat Activity Inspections], [Total Inspections])
 Passed Inspections = SUM(DailyMetrics[passed_inspections])
-Previous Week Complaints = CALCULATE([Total Complaints], DATEADD('Calendar'[Date], -7, DAY))
-Weekly Change % = DIVIDE([Total Complaints] - [Previous Week Complaints], [Previous Week Complaints])
+Other Inspection Outcomes = SUM(DailyMetrics[other_inspections])
+Rat Activity Rate = DIVIDE([Rat Activity Inspections], [Total Inspections])
+Passed Inspection Share = DIVIDE([Passed Inspections], [Total Inspections])
+Previous 7 Days Complaints = CALCULATE([Total Complaints], DATEADD('Calendar'[Date], -7, DAY))
+Previous 7 Days Inspections = CALCULATE([Total Inspections], DATEADD('Calendar'[Date], -7, DAY))
+Complaints Change % = DIVIDE([Total Complaints]-[Previous 7 Days Complaints],[Previous 7 Days Complaints])
+Inspections Change % = DIVIDE([Total Inspections]-[Previous 7 Days Inspections],[Previous 7 Days Inspections])
+Latest Reported Date = MAX(DailyMetrics[date])
+-- Note: the "Previous 7 Days" measures shift the currently selected date range
+-- by 7 days. They are week-over-week only when the report is filtered to
+-- one complete 7-day week. Hide change-rate cards for partial weeks.
+-- Inspection borough is UNKNOWN in the current mart. Do not put inspection
+-- measures on a borough-filtered report until source geography is enriched.
