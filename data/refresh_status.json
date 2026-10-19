@@ -1,25 +1,25 @@
 {
-  "run_utc": "2026-10-13T20:07:01.180492+00:00",
+  "run_utc": "2026-10-19T14:13:42.916529+00:00",
   "window": [
-    "2026-08-01",
-    "2026-09-01"
+    "2026-09-28",
+    "2026-10-19"
   ],
   "status": "success",
   "sources": {
     "complaints": {
-      "downloaded": 2139,
-      "total": 3393,
-      "net_new": 2139
+      "downloaded": 1271,
+      "total": 3798,
+      "net_new": 405
     },
     "inspections": {
-      "downloaded": 15674,
-      "total": 25344,
-      "net_new": 15674
+      "downloaded": 10557,
+      "total": 29384,
+      "net_new": 4040
     }
   },
   "mart": {
-    "complaints": 3393,
-    "inspections": 25344,
-    "daily_grains": 4761
+    "complaints": 3798,
+    "inspections": 29384,
+    "daily_grains": 5380
   }
 }
